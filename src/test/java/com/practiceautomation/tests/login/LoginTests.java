@@ -4,13 +4,16 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.edge.EdgeDriver;
 import org.testng.Assert;
+import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
-public class PositiveLoginTests {
+public class LoginTests {
 
-    @Test
-    public void testLoginFunctionality(){
+    @Test(groups = {"positive", "regression", "smoke"})
+    public void testLoginFunctionality()
+    {
         // Open page
         WebDriver driver = new ChromeDriver();
         driver.get("https://practicetestautomation.com/practice-test-login/");
@@ -45,6 +48,37 @@ public class PositiveLoginTests {
         // Verify button Log out is displayed on the new page
         WebElement logoutBtn = driver.findElement(By.linkText("Log out"));
         Assert.assertTrue(logoutBtn.isDisplayed());
+
+        driver.quit();
+
+    }
+
+    @Parameters({"username", "password", "expectedErrorMessage"})
+    @Test(groups = {"negative", "regression"})
+    public void negativeLoginTest(String username, String password, String expectedErrorMessage)
+    {
+        System.setProperty("webdriver.edge.driver", "src/main/resources/msedgedriver.exe");
+        WebDriver driver = new EdgeDriver();
+        driver.get("https://practicetestautomation.com/practice-test-login/");
+
+        WebElement usernameInput = driver.findElement(By.id("username"));
+        usernameInput.sendKeys(username);
+
+        WebElement passwordInput = driver.findElement(By.id("password"));
+        passwordInput.sendKeys(password);
+
+        WebElement submitBtn = driver.findElement(By.id("submit"));
+        submitBtn.click();
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        WebElement errorUsernameMsg = driver.findElement(By.id("error"));
+        Assert.assertTrue(errorUsernameMsg.isDisplayed());
+
+        String actualErrorMessage = errorUsernameMsg.getText();
+        Assert.assertEquals(actualErrorMessage, expectedErrorMessage);
 
         driver.quit();
 
